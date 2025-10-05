@@ -1,0 +1,55 @@
+# GitHub Pages Configuration
+title: AquaSync - 全台水庫水情即時同步系統
+description: Taiwan Reservoir Real-time Sync Platform
+author: ericthegoatskr
+email: tsaieric15@gmail.com
+
+# Site settings
+baseurl: ""
+url: "https://ericthegoatskr.github.io"
+github_username: ericthegoatskr
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include
+include:
+  - _redirects
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"

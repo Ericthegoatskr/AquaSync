@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSync - 全台水庫水情即時同步系統</title>
+    
+    <!-- Favicon - AquaSync 同步水滴設計 -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='bgGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23009FFD;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232A2A72;stop-opacity:1' /%3E%3C/linearGradient%3E%3ClinearGradient id='waterGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2300BCD4;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23bgGradient)'/%3E%3Cpath d='M30 35 Q50 25 70 35 Q75 45 70 55 Q50 65 30 55 Q25 45 30 35 Z' fill='url(%23waterGradient)'/%3E%3Cpath d='M35 40 Q50 35 65 40 Q67 45 65 50 Q50 55 35 50 Q33 45 35 40 Z' fill='%23ffffff' opacity='0.4'/%3E%3Cpath d='M40 30 Q50 25 60 30 Q62 35 60 40 Q50 45 40 40 Q38 35 40 30 Z' fill='%23ffffff' opacity='0.3'/%3E%3Cpath d='M45 20 Q50 15 55 20 Q57 25 55 30 Q50 35 45 30 Q43 25 45 20 Z' fill='%23ffffff' opacity='0.2'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='bgGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23009FFD;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232A2A72;stop-opacity:1' /%3E%3C/linearGradient%3E%3ClinearGradient id='waterGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2300BCD4;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='90' cy='90' r='85' fill='url(%23bgGradient)'/%3E%3Cpath d='M55 65 Q90 50 125 65 Q135 85 125 105 Q90 120 55 105 Q45 85 55 65 Z' fill='url(%23waterGradient)'/%3E%3Cpath d='M65 75 Q90 70 115 75 Q120 85 115 95 Q90 100 65 95 Q60 85 65 75 Z' fill='%23ffffff' opacity='0.4'/%3E%3Cpath d='M70 55 Q90 50 110 55 Q115 65 110 75 Q90 80 70 75 Q65 65 70 55 Z' fill='%23ffffff' opacity='0.3'/%3E%3Cpath d='M80 40 Q90 30 100 40 Q105 50 100 60 Q90 70 80 60 Q75 50 80 40 Z' fill='%23ffffff' opacity='0.2'/%3E%3C/svg%3E">
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='bgGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23009FFD;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232A2A72;stop-opacity:1' /%3E%3C/linearGradient%3E%3ClinearGradient id='waterGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2300BCD4;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='15' fill='url(%23bgGradient)'/%3E%3Cpath d='M8 12 Q16 8 24 12 Q26 16 24 20 Q16 24 8 20 Q6 16 8 12 Z' fill='url(%23waterGradient)'/%3E%3Cpath d='M10 14 Q16 12 22 14 Q23 16 22 18 Q16 20 10 18 Q9 16 10 14 Z' fill='%23ffffff' opacity='0.4'/%3E%3C/svg%3E">
+    
+    <!-- Google Fonts - Montserrat & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-main">
+                <div class="header-icon">
+                    <div class="aqua-sync-logo">
+                        <i class="bi bi-droplet-fill"></i>
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                </div>
+                <div class="header-text">
+                    <h1>AquaSync</h1>
+                    <p class="header-subtitle">全台水庫水情即時同步系統</p>
+                    <p class="header-subtitle-en">Taiwan Reservoir Real-time Sync Platform</p>
+                </div>
+            </div>
+            <div class="header-update">
+                <div class="update-info">
+                    <i class="bi bi-clock"></i>
+                    <span id="lastUpdated">最後更新: --</span>
+                    <i class="bi bi-arrow-clockwise refresh-icon" id="refreshBtn"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Statistics Cards Section -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-water"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalReservoirs">--</div>
+                        <div class="stat-label">水庫總數</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="avgStorageRate">--</div>
+                        <div class="stat-label">平均蓄水率</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="waterLevelFull">--</div>
+                        <div class="stat-label">水位充足</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-circle-half"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="waterLevelNormal">--</div>
+                        <div class="stat-label">水位正常</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-exclamation-octagon"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="needsAttention">--</div>
+                        <div class="stat-label">需要關注</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <h2>全台水庫蓄水率總覽</h2>
+                </div>
+                <p class="chart-subtitle">各大水庫蓄水情況一覽</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="reservoirChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Search and Filter Section -->
+        <section class="filter-section">
+            <div class="filter-controls">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="搜尋水庫名稱...">
+                </div>
+                <select id="regionFilter" class="filter-select">
+                    <option value="all">全部區域</option>
+                    <option value="north">北部</option>
+                    <option value="central">中部</option>
+                    <option value="south">南部</option>
+                    <option value="east">東部</option>
+                </select>
+                <select id="sortSelect" class="filter-select">
+                    <option value="percentage-desc">蓄水率 ⬇</option>
+                    <option value="percentage-asc">蓄水率 ⬆</option>
+                    <option value="storage-desc">有效蓄水量 ⬇</option>
+                    <option value="storage-asc">有效蓄水量 ⬆</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span id="statusText">載入中...</span>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+            </div>
+        </div>
+
+        <!-- Reservoir Cards Grid -->
+        <section class="reservoir-grid" id="reservoirGrid">
+            <!-- Reservoir cards will be dynamically inserted here -->
+        </section>
+
+        <!-- Empty State -->
+        <div class="empty-state hidden" id="emptyState">
+            <i class="bi bi-search"></i>
+            <h3>查無符合條件的水庫</h3>
+            <p>請嘗試調整搜尋條件或篩選器</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <!-- 系統資訊 -->
+            <div class="footer-section">
+                <h4 class="footer-heading">AquaSync</h4>
+                <p class="footer-description">全台水庫水情即時同步系統</p>
+                <div class="footer-meta">
+                    <span class="meta-item">
+                        <i class="bi bi-database"></i>
+                        資料來源：經濟部水利署
+                    </span>
+                    <span class="meta-item">
+                        <i class="bi bi-clock"></i>
+                        每5分鐘自動更新
+                    </span>
+                </div>
+                <div class="disclaimer">
+                    <i class="bi bi-info-circle"></i>
+                    資料僅供參考，以官方公告為準
+                </div>
+            </div>
+
+            <!-- 快速連結 -->
+            <div class="footer-section">
+                <h4 class="footer-heading">快速連結</h4>
+                <nav class="footer-nav">
+                    <a href="https://www.wra.gov.tw/" target="_blank" class="footer-link">水利署官網</a>
+                    <a href="https://fhy.wra.gov.tw/" target="_blank" class="footer-link">防災資訊網</a>
+                    <a href="https://data.gov.tw/" target="_blank" class="footer-link">開放資料平臺</a>
+                    <a href="https://www.cwa.gov.tw/V8/C/" target="_blank" class="footer-link">中央氣象局</a>
+                </nav>
+            </div>
+
+            <!-- 技術架構 -->
+            <div class="footer-section">
+                <h4 class="footer-heading">技術架構</h4>
+                <div class="tech-stack">
+                    <div class="tech-item">
+                        <span class="tech-label">前端</span>
+                        <span class="tech-value">HTML5, CSS3, JavaScript</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-label">視覺化</span>
+                        <span class="tech-value">Chart.js</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-label">API</span>
+                        <span class="tech-value">FHY 水利署開放資料</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-label">更新</span>
+                        <span class="tech-value">自動化 5分鐘週期</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聯絡資訊 -->
+            <div class="footer-section">
+                <h4 class="footer-heading">聯絡我們</h4>
+                <div class="contact-details">
+                    <a href="mailto:tsaieric15@gmail.com" class="contact-item">
+                        <i class="bi bi-envelope"></i>
+                        tsaieric15@gmail.com
+                    </a>
+                    <a href="https://github.com/ericthegoatskr" target="_blank" class="contact-item">
+                        <i class="bi bi-github"></i>
+                        GitHub
+                    </a>
+                </div>
+                <div class="privacy-note">
+                    <i class="bi bi-shield-check"></i>
+                    隱私保護，僅使用本地快取
+                </div>
+                <div class="version-info">
+                    <br>
+                    <p><small>版本 v1.0.0 | 最後更新：2025年10月</small></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 版權聲明 -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <div class="copyright-info">
+                    <span>© 2025 AquaSync</span>
+                    <span class="separator">|</span>
+                    <span>MIT License</span>
+                </div>
+                <div class="footer-brand">
+                    <span>Made by ericthegoatskr</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <!-- Initial Loading Animation -->
+    <div class="initial-loading" id="initialLoading">
+        <div class="loading-background">
+            <div class="loading-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+        </div>
+        
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="bi bi-droplet-fill loading-icon"></i>
+            </div>
+            
+            <div class="loading-text">
+                <h1 class="loading-title">AquaSync</h1>
+                <p class="loading-subtitle">全台水庫水情即時同步系統</p>
+                <p class="loading-subtitle-en">Taiwan Reservoir Real-time Sync Platform</p>
+            </div>
+            
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="loading-percentage" id="loadingPercentage">0%</div>
+            </div>
+            
+            <div class="loading-status" id="loadingStatus">正在初始化系統...</div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="bi bi-droplet-fill"></i>
+        </div>
+        <p>載入資料中...</p>
+    </div>
+
+    <!-- Reservoir Card Template -->
+    <template id="reservoirCardTemplate">
+        <div class="reservoir-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="bi bi-water"></i>
+                    <h3 class="reservoir-name"></h3>
+                </div>
+                <div class="card-location">
+                    <i class="bi bi-geo-alt"></i>
+                    <span class="location-text"></span>
+                </div>
+            </div>
+            
+            <div class="water-level-section">
+                <div class="water-level-bar">
+                    <div class="water-level-fill"></div>
+                    <div class="water-level-labels">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                <div class="water-level-info">
+                    <div class="water-level-percentage"></div>
+                    <div class="water-level-status"></div>
+                    <div class="water-drops">
+                        <i class="bi bi-droplet-fill"></i>
+                        <i class="bi bi-droplet-fill"></i>
+                        <i class="bi bi-droplet-fill"></i>
+                        <i class="bi bi-droplet-fill"></i>
+                        <i class="bi bi-droplet-fill"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reservoir-metrics">
+                <div class="metric-item">
+                    <div class="metric-icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">有效容量</div>
+                        <div class="metric-value effective-capacity">--</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon">
+                        <i class="bi bi-droplet"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">目前水量</div>
+                        <div class="metric-value current-water">--</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">蓄水率</div>
+                        <div class="metric-value storage-rate">--</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon">
+                        <i class="bi bi-thermometer-half"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">水位狀態</div>
+                        <div class="metric-value water-status">--</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div class="update-time">
+                    <i class="bi bi-clock"></i>
+                    <span class="time-text">--</span>
+                </div>
+                <div class="reservoir-code">
+                    <i class="bi bi-hash"></i>
+                    <span class="code-text">--</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>
