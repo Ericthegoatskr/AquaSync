@@ -1,11 +1,11 @@
 // ===== Configuration =====
 const CONFIG = {
     API_URLS: {
-        REALTIME: 'https://fhy.wra.gov.tw/WraApi/v1/Reservoir/RealTimeInfo',
-        STATION: 'https://fhy.wra.gov.tw/WraApi/v1/Reservoir/Station',
-        DAILY: 'https://fhy.wra.gov.tw/WraApi/v1/Reservoir/Daily',
-        WARNING: 'https://fhy.wra.gov.tw/WraApi/v1/Reservoir/Warning'
+        REALTIME: 'https://fhy.wra.gov.tw/Api/v2/Reservoir/Info/RealTime',
+        STATION: 'https://fhy.wra.gov.tw/Api/v2/Reservoir/Station',
+        DAILY: 'https://fhy.wra.gov.tw/OpenApiv3/v2/Reservoir/Daily'
     },
+    API_KEY: 'd6dd3cd4-493f-43a3-92b1-8b2db217da96',
     AUTO_REFRESH_INTERVAL: 5 * 60 * 1000, // 5 minutes
     CHART_OPTIONS: {
         responsive: true,
@@ -63,6 +63,11 @@ let loadingState = {
 
 // ===== Utility Functions =====
 const utils = {
+    // Return the first meaningful value while preserving 0
+    firstValue(...values) {
+        return values.find(value => value !== null && value !== undefined && value !== '');
+    },
+
     // Format number with locale
     formatNumber(num, decimals = 2) {
         if (num === null || num === undefined || isNaN(num)) return '--';
@@ -230,45 +235,40 @@ const RESERVOIR_NAMES = {
 const dataProcessor = {
     // Normalize reservoir data
     normalizeReservoir(rawData) {
-        // 除錯：印出原始資料結構
-        console.log('處理水庫資料:', rawData);
-        
         // 取得水庫代碼
-        const code = rawData.StationNo || rawData.ReservoirIdentifier || rawData.Code || rawData.Id || rawData.id || '';
+        const code = utils.firstValue(
+            rawData.StationNo,
+            rawData.ReservoirIdentifier,
+            rawData.Code,
+            rawData.Id,
+            rawData.id,
+            ''
+        );
         
         // 嘗試多種可能的水庫名稱欄位，優先使用對照表
-        let name = RESERVOIR_NAMES[code] || 
-                   rawData.ReservoirName || 
-                   rawData.StationName || 
-                   rawData.Name || 
-                   rawData.NAME ||
-                   rawData.reservoirName ||
-                   rawData.stationName ||
-                   rawData.name ||
-                   '未知水庫';
-
-        // 除錯：印出水庫名稱
-        const nameSource = RESERVOIR_NAMES[code] ? `對照表(${code})` :
-                          rawData.ReservoirName ? 'ReservoirName' :
-                          rawData.StationName ? 'StationName' :
-                          rawData.Name ? 'Name' :
-                          rawData.NAME ? 'NAME' :
-                          rawData.reservoirName ? 'reservoirName' :
-                          rawData.stationName ? 'stationName' :
-                          rawData.name ? 'name' : '無匹配欄位';
-        
-        console.log('提取的水庫名稱:', name, '來自:', nameSource, '代碼:', code);
+        let name = utils.firstValue(
+            RESERVOIR_NAMES[code],
+            rawData.ReservoirName,
+            rawData.StationName,
+            rawData.Name,
+            rawData.NAME,
+            rawData.reservoirName,
+            rawData.stationName,
+            rawData.name,
+            '未知水庫'
+        );
 
         return {
             id: code,
             name: name,
             code: code,
-            storageRate: rawData.PercentageOfStorage || rawData.StorageRatio || rawData.percentageOfStorage || null,
-            effectiveCapacity: rawData.EffectiveStorage || rawData.ActiveStorage || rawData.effectiveStorage || null,
-            waterLevel: rawData.WaterLevel || rawData.NowLevel || rawData.waterLevel || null,
-            inflow: rawData.Inflow || rawData.InflowVolume || rawData.inflow || null,
-            outflow: rawData.Outflow || rawData.OutflowVolume || rawData.outflow || null,
-            updateTime: rawData.Time || rawData.RecordTime || rawData.UpdateTime || rawData.time || null,
+            storageRate: utils.firstValue(rawData.PercentageOfStorage, rawData.StorageRatio, rawData.CapacityRate, rawData.percentageOfStorage, null),
+            effectiveCapacity: utils.firstValue(rawData.EffectiveCapacity, rawData.Storage, rawData.effectiveCapacity, null),
+            currentStorage: utils.firstValue(rawData.EffectiveStorage, rawData.Capacity, rawData.ActiveStorage, rawData.effectiveStorage, null),
+            waterLevel: utils.firstValue(rawData.WaterHeight, rawData.WaterLevel, rawData.NowLevel, rawData.waterLevel, null),
+            inflow: utils.firstValue(rawData.Inflow, rawData.InflowVolume, rawData.inflow, null),
+            outflow: utils.firstValue(rawData.Outflow, rawData.OutflowVolume, rawData.outflow, null),
+            updateTime: utils.firstValue(rawData.Time, rawData.RecordTime, rawData.UpdateTime, rawData.time, null),
             region: this.getRegion(code),
             raw: rawData
         };
@@ -537,7 +537,6 @@ const ui = {
         cardElement.id = `reservoir-${reservoir.id || reservoir.code || reservoir.name.replace(/\s+/g, '-')}`;
 
         // Fill in data
-        console.log('創建卡片，水庫資料:', reservoir);
         card.querySelector('.reservoir-name').textContent = reservoir.name || '未知水庫';
         card.querySelector('.location-text').textContent = this.getRegionName(reservoir.region);
         
@@ -574,8 +573,8 @@ const ui = {
         card.querySelector('.effective-capacity').textContent = 
             reservoir.effectiveCapacity ? `${utils.formatNumber(reservoir.effectiveCapacity)} 萬m³` : '--';
         card.querySelector('.current-water').textContent = 
-            reservoir.effectiveCapacity && reservoir.storageRate ? 
-            `${utils.formatNumber(reservoir.effectiveCapacity * (reservoir.storageRate / 100))} 萬m³` : '--';
+            reservoir.currentStorage !== null && reservoir.currentStorage !== undefined ? 
+            `${utils.formatNumber(reservoir.currentStorage)} 萬m³` : '--';
         card.querySelector('.storage-rate').textContent = utils.formatPercentage(reservoir.storageRate);
         card.querySelector('.water-status').textContent = utils.getWaterLevelStatus(reservoir.storageRate);
 
@@ -601,9 +600,6 @@ const ui = {
 
     // Update reservoir grid
     updateReservoirGrid(reservoirs) {
-        console.log('更新水庫網格，水庫數量:', reservoirs.length);
-        console.log('水庫資料:', reservoirs);
-        
         domElements.reservoirGrid.innerHTML = '';
         
         if (reservoirs.length === 0) {
@@ -614,8 +610,7 @@ const ui = {
         domElements.emptyState.classList.add('hidden');
         
         const fragment = document.createDocumentFragment();
-        reservoirs.forEach((reservoir, index) => {
-            console.log(`處理第 ${index + 1} 個水庫:`, reservoir);
+        reservoirs.forEach((reservoir) => {
             const card = this.createReservoirCard(reservoir);
             fragment.appendChild(card);
         });
@@ -785,43 +780,58 @@ const loadingController = {
 
 // ===== API Functions =====
 const api = {
+    async fetchJson(url) {
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json',
+                'apikey': CONFIG.API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error(`API 回傳格式錯誤: ${contentType || 'unknown'}`);
+        }
+
+        return response.json();
+    },
+
+    extractData(json) {
+        return Array.isArray(json) ? json
+           : Array.isArray(json?.Data) ? json.Data
+           : Array.isArray(json?.data) ? json.data
+           : Array.isArray(json?.Result) ? json.Result
+           : [];
+    },
+
     // Fetch reservoir data
     async fetchReservoirData() {
         try {
-            const response = await fetch(CONFIG.API_URLS.REALTIME, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-store',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-    
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status} ${response.statusText}`);
-            }
+            const [realtimeJson, stationJson] = await Promise.all([
+                this.fetchJson(CONFIG.API_URLS.REALTIME),
+                this.fetchJson(CONFIG.API_URLS.STATION)
+            ]);
 
-            const json = await response.json();
-            
-            // 除錯：印出 API 回應的資料結構
-            console.log('API 回應資料:', json);
-            if (Array.isArray(json) && json.length > 0) {
-                console.log('第一筆資料結構:', json[0]);
-                console.log('第一筆資料的所有欄位:', Object.keys(json[0]));
-            }
+            const realtimeData = this.extractData(realtimeJson);
+            const stationData = this.extractData(stationJson);
+            const stationsByNo = new Map(stationData.map(station => [station.StationNo, station]));
 
-            // Handle different response formats
-            const data = Array.isArray(json) ? json
-               : Array.isArray(json?.data) ? json.data
-               : Array.isArray(json?.Result) ? json.Result
-               : [];
+            const data = realtimeData.map(item => ({
+                ...stationsByNo.get(item.StationNo),
+                ...item
+            }));
 
             if (data.length === 0) {
                 throw new Error('API 未回傳資料');
             }
 
-            console.log(`成功取得 ${data.length} 筆水庫資料`);
             return data.map(rawData => dataProcessor.normalizeReservoir(rawData));
         } catch (error) {
             console.error('API 請求失敗:', error);
@@ -973,8 +983,6 @@ const app = {
                     await this.loadAppData();
                 }
             }, 2000); // Start loading data after 2 seconds
-
-            console.log('台灣水庫監控系統已啟動 🚀');
         } catch (error) {
             console.error('應用程式初始化失敗:', error);
             ui.updateStatus('初始化失敗', 'error');
